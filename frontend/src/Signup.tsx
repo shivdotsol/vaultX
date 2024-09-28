@@ -6,8 +6,10 @@ import {
 } from "@/components/ui/accordion";
 import { TextField } from "@mui/material";
 import { Button } from "./components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 function Signup() {
+    const navigate = useNavigate();
     return (
         <div className="flex w-[100vw] h-[100vh] ">
             <div className="h-full w-1/4 bg-slate-950 flex flex-col items-center py-28 px-10">
@@ -16,6 +18,7 @@ function Signup() {
                         className="h-10 w-auto"
                         src="/vaultx.png"
                         alt="vaultx"
+                        onClick={() => navigate("/")}
                     />
                 </div>
                 <div className=" font-bold w-full text-left mb-1 ">FAQs</div>
@@ -94,13 +97,13 @@ function Signup() {
                             CANCEL
                         </Button>
                         <div className="w-full text-center text-slate-300 mt-4 text-sm">
-                            Existing user ?{" "}
-                            <a
-                                href="/login"
-                                className="text-slate-100 underline"
+                            Existing user ?
+                            <div
+                                className="ml-1 text-slate-100 inline-block cursor-pointer"
+                                onClick={() => navigate("/login")}
                             >
                                 login instead
-                            </a>
+                            </div>
                         </div>
                     </div>
                 </div>

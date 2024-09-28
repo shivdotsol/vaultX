@@ -6,8 +6,10 @@ import {
 } from "@/components/ui/accordion";
 import { TextField } from "@mui/material";
 import { Button } from "./components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
+    const navigate = useNavigate();
     return (
         <div className="flex w-[100vw] h-[100vh] ">
             <div className="h-full w-1/4 bg-slate-950 flex flex-col items-center py-28 px-10">
@@ -79,12 +81,12 @@ function Login() {
                         </Button>
                         <div className="w-full text-center text-slate-300 mt-4 text-sm">
                             New user ?
-                            <a
-                                href="/signup"
-                                className="text-slate-100 underline"
+                            <div
+                                className="ml-1 inline-block text-slate-100 cursor-pointer"
+                                onClick={() => navigate("/signup")}
                             >
                                 signup instead
-                            </a>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -56,8 +56,8 @@ function Signup() {
                     </Accordion>
                 </div>
             </div>
-            <div className="w-full my-auto xl:h-full xl:w-3/4 bg-slate-900 flex items-center justify-center">
-                <div className="w-[420px] xl:border-2 xl:border-slate-800 bg-slate-950 rounded-lg px-12 py-10">
+            <div className="w-full my-auto xl:h-full xl:w-3/4 bg-slate-950 flex items-center justify-center">
+                <div className="w-[420px] xl:border-2 xl:border-slate-950 bg-slate-950 rounded-lg px-12 py-10">
                     <div className="text-xl font-bold text-slate-200 w-full text-center mb-8">
                         Welcome aboard !
                     </div>

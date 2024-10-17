@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { loggedInState, userState } from "./store/atoms/authState";
 import { jwtDecode } from "jwt-decode";
+import SuccessToast from "./components/ui/SuccessToast";
 
 function Signup() {
     const [isLoggedIn, setIsLoggedIn] = useRecoilState(loggedInState);
@@ -30,7 +31,7 @@ function Signup() {
             .then(({ status, data }) => {
                 if (status == 200) {
                     navigate("/");
-                    toast("Login Successfull", {
+                    toast(<SuccessToast message="Logged in successfully !" />, {
                         style: {
                             fontSize: "16px",
                             border: "1px solid rgba(255, 255, 255, 0.2)",
@@ -38,8 +39,11 @@ function Signup() {
                     });
                     localStorage.token = data.token;
                     setIsLoggedIn(true);
-                    const userObj = jwtDecode(data.token);
-                    //@ts-ignore
+                    const userObj = jwtDecode<{
+                        firstName: string;
+                        lastName: string;
+                        email: string;
+                    }>(data.token);
                     setUserState(userObj);
                 }
             })

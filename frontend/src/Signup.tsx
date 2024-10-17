@@ -12,7 +12,8 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { loggedInState, userState } from "./store/atoms/authState";
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode, JwtPayload } from "jwt-decode";
+import SuccessToast from "./components/ui/SuccessToast";
 
 function Signup() {
     const navigate = useNavigate();
@@ -36,7 +37,7 @@ function Signup() {
             .then(({ status, data }) => {
                 if (status == 200) {
                     navigate("/");
-                    toast("Signup Successfull", {
+                    toast(<SuccessToast message="Signed up successfully !" />, {
                         style: {
                             fontSize: "16px",
                             border: "1px solid rgba(255, 255, 255, 0.2)",
@@ -44,8 +45,11 @@ function Signup() {
                     });
                     localStorage.token = data.token;
                     setIsLoggedIn(true);
-                    const userObj = jwtDecode(data.token);
-                    //@ts-ignore
+                    const userObj = jwtDecode<{
+                        firstName: string;
+                        lastName: string;
+                        email: string;
+                    }>(data.token);
                     setUserState(userObj);
                 }
             })

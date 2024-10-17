@@ -17,7 +17,7 @@ function App() {
     return (
         <RecoilRoot>
             <ThemeProvider theme={darkTheme}>
-                <Toaster duration={4000} theme="dark" />
+                <Toaster duration={5000} theme="dark" />
                 <CssBaseline />
                 <BrowserRouter>
                     <Routes>

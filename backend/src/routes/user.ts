@@ -2,10 +2,13 @@ import express from "express";
 import { z as zod } from "zod";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { PrismaClient } from "@prisma/client";
 dotenv.config();
 
 const router = express.Router();
 const secret = process.env.JWT_SECRET;
+const prisma = new PrismaClient();
+
 if (typeof secret == "undefined") {
     throw new Error("JWT_SECRET is not defined in the environment");
 }
@@ -23,41 +26,124 @@ const loginSchema = zod.object({
     password: zod.string(),
 });
 
-router.post("/signup", (req, res) => {
+router.post("/signup", async (req, res) => {
     const body = req.body;
-    const { success } = signupSchema.safeParse(body);
-
-    ///////// register user and send JWT token
+    const { success, data } = signupSchema.safeParse(body);
 
     if (!success) {
-        res.json({
+        res.status(422).json({
             message: "invalid signup schema, try again.",
         });
     } else {
-        const token = jwt.sign(
-            {
-                email: body.email,
-                firstName: body.firstName,
-                lastName: body.lastName,
-            },
-            secret
-        );
+        try {
+            const user = await prisma.user.findUnique({
+                where: {
+                    email: data.email,
+                },
+            });
+            if (user == null) {
+                const token = jwt.sign(
+                    {
+                        email: data.email,
+                        firstName: data.firstName,
+                        lastName: data.lastName,
+                    },
+                    secret
+                );
 
-        res.json({
-            message: "signup successfull",
-            token,
-        });
+                const randomNum = Date.now().toString().slice(-6);
+                const username = `${
+                    data.firstName.toLowerCase().trim().split(" ").join("") +
+                    "_" +
+                    randomNum
+                }`;
+
+                try {
+                    const user = await prisma.user.create({
+                        data: {
+                            username,
+                            email: data.email,
+                            firstName: data.firstName,
+                            lastName: data.lastName,
+                            passwordHash: data.password,
+                        },
+                    });
+
+                    console.log(user);
+
+                    res.status(200).json({
+                        message: "signup successfull",
+                        token,
+                    });
+                } catch (e) {
+                    console.log(e);
+                    res.status(500).json({
+                        message: "some error occurred while creating the user.",
+                    });
+                }
+            } else {
+                res.status(409).json({
+                    msg: "this email is already in use, try logging in or use a different email",
+                });
+            }
+        } catch (e) {
+            res.status(500).json({
+                msg: "some error occurred",
+            });
+        }
     }
-
-    ///////// make entry for user in db
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-router.post("/login", (req, res) => {
-    res.json({
-        msg: "login route",
-    });
+router.post("/login", async (req, res) => {
+    const body = req.body;
+    const { success, data } = loginSchema.safeParse(body);
+
+    if (!success) {
+        res.status(422).json({
+            msg: "invalid login schema",
+        });
+    } else {
+        try {
+            const user = await prisma.user.findUnique({
+                where: {
+                    email: data.email,
+                },
+            });
+
+            if (user != null) {
+                if (data.password == user.passwordHash) {
+                    const token = jwt.sign(
+                        {
+                            email: user.email,
+                            firstName: user.firstName,
+                            lastName: user.lastName,
+                        },
+                        secret
+                    );
+
+                    res.status(200).json({
+                        msg: "logged in, sucessfully",
+                        token,
+                    });
+                } else {
+                    res.status(401).json({
+                        msg: "invalid login credentials",
+                    });
+                }
+            } else {
+                res.status(404).json({
+                    msg: "user not found, try signing up first,",
+                });
+            }
+        } catch (e) {
+            console.log("some error occurred " + e);
+            res.status(500).json({
+                msg: "some error occurred, try again",
+            });
+        }
+    }
 });
 
 export default router;

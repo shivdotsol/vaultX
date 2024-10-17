@@ -7,9 +7,47 @@ import {
 import { TextField } from "@mui/material";
 import { Button } from "./components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import axios from "axios";
+import { toast } from "sonner";
+import { useRecoilState, useSetRecoilState } from "recoil";
+import { loggedInState, userState } from "./store/atoms/authState";
+import { jwtDecode } from "jwt-decode";
 
 function Signup() {
+    const [isLoggedIn, setIsLoggedIn] = useRecoilState(loggedInState);
+    const setUserState = useSetRecoilState(userState);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const navigate = useNavigate();
+
+    const onLogin = () => {
+        axios
+            .post("http://localhost:3000/api/v1/user/login", {
+                email,
+                password,
+            })
+            .then(({ status, data }) => {
+                if (status == 200) {
+                    navigate("/");
+                    toast("Login Successfull", {
+                        style: {
+                            fontSize: "16px",
+                            border: "1px solid rgba(255, 255, 255, 0.2)",
+                        },
+                    });
+                    localStorage.token = data.token;
+                    setIsLoggedIn(true);
+                    const userObj = jwtDecode(data.token);
+                    //@ts-ignore
+                    setUserState(userObj);
+                }
+            })
+            .catch((e) => {
+                console.log(e);
+            });
+    };
+
     return (
         <div className="flex flex-col-reverse overflow-y-auto w-[100vw] h-[100vh] xl:flex-row bg-slate-950">
             <div className="w-full py-10 bg-slate-950 hidden xl:flex xl:flex-col xl:items-center xl:py-28 xl:px-10 xl:h-full xl:w-1/4">
@@ -21,7 +59,7 @@ function Signup() {
                         onClick={() => navigate("/")}
                     />
                 </div>
-                <div>
+                <div className="xl:w-full">
                     <div className=" font-bold w-full text-left mb-1">FAQs</div>
                     <Accordion type="single" collapsible className="w-full">
                         <AccordionItem value="item-1">
@@ -56,30 +94,34 @@ function Signup() {
                     </Accordion>
                 </div>
             </div>
-            <div className="w-full my-auto xl:h-full xl:w-3/4 bg-slate-950 flex items-center justify-center">
-                <div className="w-[420px] xl:border-2 xl:border-slate-950 bg-slate-950 rounded-lg px-12 py-10">
+            <div className="w-full my-auto xl:h-full xl:w-3/4 bg-slate-950 xl:bg-slate-900 flex items-center justify-center">
+                <div className="w-[420px] xl:border-2 xl:border-slate-80 bg-slate-950 rounded-lg px-12 py-10">
                     <div className="text-xl font-bold text-slate-200 w-full text-center mb-8">
                         Welcome back !
                     </div>
                     <div className="mt-8">
                         <TextField
-                            id="outlined-basic"
                             label="Email"
                             variant="outlined"
                             className="w-full"
+                            onChange={(e) => setEmail(e.target.value)}
+                            value={email}
                         />
                     </div>
                     <div className="mt-3">
                         <TextField
-                            id="outlined-basic"
                             label="Password"
                             variant="outlined"
                             type="password"
                             className="w-full"
+                            onChange={(e) => setPassword(e.target.value)}
+                            value={password}
                         />
                     </div>
                     <div className="w-full mt-10 flex flex-col">
-                        <Button className="w-full py-6 mb-2">SIGN IN</Button>
+                        <Button className="w-full py-6 mb-2" onClick={onLogin}>
+                            LOG IN
+                        </Button>
                         <Button
                             className="w-full py-6"
                             variant={"secondary"}

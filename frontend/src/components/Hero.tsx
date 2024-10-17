@@ -5,7 +5,7 @@ function Hero() {
     const navigate = useNavigate();
     return (
         <div className="w-full flex flex-col justify-center items-center ">
-            <div className="font-extrabold tracking-tighter text-2xl pb-3 pt-24 text-slate-200 xl:text-6xl xl:pt-32 xl:pb-5">
+            <div className="font-extrabold tracking-tighter xl:tracking-tight text-2xl pb-3 pt-24 text-slate-200 xl:text-6xl xl:pt-32 xl:pb-5">
                 <div className="text-center">
                     Cryptocurrency Meets Convenience
                 </div>
@@ -17,7 +17,10 @@ function Hero() {
                     Supporting Bitcoin, Ethereum & Solana
                 </div>
             </div>
-            <Button className="font-bold" onClick={() => navigate("/signup")}>
+            <Button
+                className="font-bold xl:w-44 xl:h-12 text-[16px]"
+                onClick={() => navigate("/signup")}
+            >
                 GET STARTED
             </Button>
         </div>

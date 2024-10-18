@@ -29,7 +29,7 @@ function Signup() {
     const onLogin = () => {
         setIsLoading(true);
         axios
-            .post("http://localhost:3000/api/v1/user/login", {
+            .post("https://vaultx.shivtiwari.com:3000/api/v1/user/login", {
                 email,
                 password,
             })

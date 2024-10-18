@@ -53,7 +53,7 @@ function Signup() {
         if (validateSchema()) {
             setIsLoading(true);
             axios
-                .post("http://localhost:3000/api/v1/user/signup", {
+                .post("https://shivtiwari.com:3000/api/v1/user/signup", {
                     email,
                     firstName,
                     lastName,

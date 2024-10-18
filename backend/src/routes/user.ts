@@ -28,11 +28,12 @@ const loginSchema = zod.object({
 
 router.post("/signup", async (req, res) => {
     const body = req.body;
-    const { success, data } = signupSchema.safeParse(body);
+    const { success, data, error } = signupSchema.safeParse(body);
 
     if (!success) {
         res.status(422).json({
             message: "invalid signup schema, try again.",
+            error,
         });
     } else {
         try {

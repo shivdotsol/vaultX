@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { loggedInState, userState } from "@/store/atoms/authState";
+import { userState } from "@/store/atoms/authState";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -27,7 +27,9 @@ import {
 
 function Nav() {
     const navigate = useNavigate();
-    const [isLoggedIn, setIsLoggedIn] = useRecoilState(loggedInState);
+    const [isLoggedIn, setIsLoggedIn] = useState(
+        JSON.parse(localStorage.getItem("isLoggedIn") || "false")
+    );
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const currentUser = useRecoilValue(userState);
 
@@ -37,6 +39,8 @@ function Nav() {
     }
 
     function handleLogout() {
+        localStorage.removeItem("token");
+        localStorage.removeItem("isLoggedIn");
         setIsLoggedIn(false);
         setIsDialogOpen(false);
     }
@@ -82,49 +86,45 @@ function Nav() {
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem>
                                     <div
-                                        className="text-red-500"
+                                        className="text-red-500 h-full w-full"
                                         onClick={openAlert}
                                     >
                                         Log out
                                     </div>
-                                    <AlertDialog open={isDialogOpen}>
-                                        <AlertDialogTrigger
-                                            asChild
-                                        ></AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>
-                                                    Are you sure you want to log
-                                                    out?
-                                                </AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    You will have to log back in
-                                                    again.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel className="font-bold">
-                                                    <div
-                                                        onClick={() =>
-                                                            setIsDialogOpen(
-                                                                false
-                                                            )
-                                                        }
-                                                    >
-                                                        Cancel
-                                                    </div>
-                                                </AlertDialogCancel>
-                                                <AlertDialogAction className="bg-red-600 text-white font-bold hover:bg-red-700">
-                                                    <div onClick={handleLogout}>
-                                                        Continue
-                                                    </div>
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
+                        <AlertDialog open={isDialogOpen}>
+                            <AlertDialogTrigger asChild></AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                        Are you sure you want to log out?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        You will have to log back in again.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel
+                                        className="font-bold"
+                                        onClick={() => setIsDialogOpen(false)}
+                                    >
+                                        <div className="w-full h-full">
+                                            Cancel
+                                        </div>
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                        className="bg-red-600 text-white font-bold hover:bg-red-700"
+                                        onClick={handleLogout}
+                                    >
+                                        <div className="w-full h-full">
+                                            Log Out
+                                        </div>
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     </div>
                 ) : (
                     <div className="flex h-full items-center justify-between">

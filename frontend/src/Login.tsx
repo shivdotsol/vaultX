@@ -8,21 +8,26 @@ import { TextField } from "@mui/material";
 import { Button } from "./components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { loggedInState, userState } from "./store/atoms/authState";
+import { userState } from "./store/atoms/authState";
 import { jwtDecode } from "jwt-decode";
 import SuccessToast from "./components/ui/SuccessToast";
+import ErrorToast from "./components/ui/ErrorToast";
 
 function Signup() {
-    const [isLoggedIn, setIsLoggedIn] = useRecoilState(loggedInState);
     const setUserState = useSetRecoilState(userState);
+    const [isLoggedIn, setIsLoggedIn] = useState(
+        JSON.parse(localStorage.getItem("isLoggedIn") || "false")
+    );
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     const onLogin = () => {
+        setIsLoading(true);
         axios
             .post("http://localhost:3000/api/v1/user/login", {
                 email,
@@ -38,6 +43,7 @@ function Signup() {
                         },
                     });
                     localStorage.token = data.token;
+                    localStorage.isLoggedIn = true;
                     setIsLoggedIn(true);
                     const userObj = jwtDecode<{
                         firstName: string;
@@ -45,9 +51,55 @@ function Signup() {
                         email: string;
                     }>(data.token);
                     setUserState(userObj);
+                    setIsLoading(false);
                 }
             })
             .catch((e) => {
+                if (axios.isAxiosError(e)) {
+                    const axiosError = e as AxiosError;
+                    if (axiosError.status == 401) {
+                        toast(
+                            <ErrorToast message="Wrong email or password." />,
+                            {
+                                style: {
+                                    fontSize: "16px",
+                                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                                },
+                            }
+                        );
+                        setIsLoading(false);
+                    } else if (axiosError.status == 422) {
+                        toast(<ErrorToast message="Invalid email format." />, {
+                            style: {
+                                fontSize: "16px",
+                                border: "1px solid rgba(255, 255, 255, 0.2)",
+                            },
+                        });
+                        setIsLoading(false);
+                    } else if (axiosError.status == 404) {
+                        toast(
+                            <ErrorToast message="User does not exist, try signing in." />,
+                            {
+                                style: {
+                                    fontSize: "16px",
+                                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                                },
+                            }
+                        );
+                        setIsLoading(false);
+                    } else {
+                        toast(
+                            <ErrorToast message="Some error occurred, try again." />,
+                            {
+                                style: {
+                                    fontSize: "16px",
+                                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                                },
+                            }
+                        );
+                        setIsLoading(false);
+                    }
+                }
                 console.log(e);
             });
     };
@@ -123,8 +175,21 @@ function Signup() {
                         />
                     </div>
                     <div className="w-full mt-10 flex flex-col">
-                        <Button className="w-full py-6 mb-2" onClick={onLogin}>
-                            LOG IN
+                        <Button
+                            className="w-full py-6 mb-2 flex items-center justify-center hover:bg-white"
+                            onClick={onLogin}
+                        >
+                            {!isLoading ? (
+                                <div>LOG IN</div>
+                            ) : (
+                                <div>
+                                    <img
+                                        className="w-1/2 h-auto m-auto"
+                                        src="/icons/Fountain.gif"
+                                        alt=""
+                                    />
+                                </div>
+                            )}
                         </Button>
                         <Button
                             className="w-full py-6"

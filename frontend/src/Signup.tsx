@@ -17,6 +17,7 @@ import SuccessToast from "./components/ui/SuccessToast";
 import ErrorToast from "./components/ui/ErrorToast";
 
 function Signup() {
+    const BASE_URL = import.meta.env.VITE_BASE_URL;
     const navigate = useNavigate();
     const setUserState = useSetRecoilState(userState);
     const [isLoggedIn, setIsLoggedIn] = useState(
@@ -29,21 +30,22 @@ function Signup() {
     const [isLoading, setIsLoading] = useState(false);
 
     const validateSchema = () => {
-        if (
-            !(
-                email.includes("@") &&
-                email.endsWith(".com") &&
-                !email.startsWith("@") &&
-                !email.includes("@.")
-            )
-        ) {
+        const emailRegex =
+            /^[a-zA-Z0-9._%+-]+[a-zA-Z0-9%+-]@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
+        if (email.length == 0) {
+            toast(<ErrorToast message="email cannot be empty" />);
+            return false;
+        }
+        if (!emailRegex.test(email)) {
             toast(<ErrorToast message="Invalid email format" />);
             return false;
         } else if (firstName.length < 1) {
             toast(<ErrorToast message="First name can't be empty" />);
+        } else if (lastName.length < 1) {
+            toast(<ErrorToast message="Last name can't be empty" />);
         } else if (password.length < 8) {
             toast(
-                <ErrorToast message="Password must be more than 8 characters" />
+                <ErrorToast message="Password can't be less than 8 characters" />
             );
             return false;
         } else {
@@ -55,7 +57,7 @@ function Signup() {
         if (validateSchema()) {
             setIsLoading(true);
             axios
-                .post("http://localhost:3000/api/v1/user/signup", {
+                .post(`${BASE_URL}/api/v1/user/signup`, {
                     email,
                     firstName,
                     lastName,
@@ -195,6 +197,7 @@ function Signup() {
                         <Button
                             className="w-full py-6 mb-2 hover:bg-white"
                             onClick={onSignup}
+                            disabled={isLoading}
                         >
                             {!isLoading ? (
                                 <div>SIGN IN</div>

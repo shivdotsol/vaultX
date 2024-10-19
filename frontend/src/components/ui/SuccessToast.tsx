@@ -1,6 +1,6 @@
 function SuccessToast({ message }: { message: string }) {
     return (
-        <div className="h-full w-full flex items-center">
+        <div className="h-full w-full flex items-center text-sm xl:text-base">
             <div className="h-full w-auto">
                 <img src="/icons/tick.png" alt="" />
             </div>

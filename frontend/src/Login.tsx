@@ -10,13 +10,14 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
-import { useRecoilState, useSetRecoilState } from "recoil";
+import { useSetRecoilState } from "recoil";
 import { userState } from "./store/atoms/authState";
 import { jwtDecode } from "jwt-decode";
 import SuccessToast from "./components/ui/SuccessToast";
 import ErrorToast from "./components/ui/ErrorToast";
 
-function Signup() {
+function Login() {
+    const BASE_URL = import.meta.env.VITE_BASE_URL;
     const setUserState = useSetRecoilState(userState);
     const [isLoggedIn, setIsLoggedIn] = useState(
         JSON.parse(localStorage.getItem("isLoggedIn") || "false")
@@ -26,40 +27,39 @@ function Signup() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
+    const validateSchema = () => {
+        const emailRegex =
+            /^[a-zA-Z0-9._%+-]+[a-zA-Z0-9%+-]@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
+        if (email.length == 0) {
+            toast(<ErrorToast message="email cannot be empty" />);
+            return false;
+        }
+        if (!emailRegex.test(email)) {
+            toast(<ErrorToast message="Invalid email format" />);
+            return false;
+        } else if (password.length < 8) {
+            toast(
+                <ErrorToast message="Password must be more than 8 characters" />
+            );
+            return false;
+        } else {
+            return true;
+        }
+    };
+
     const onLogin = () => {
-        setIsLoading(true);
-        axios
-            .post("http://localhost:3000/api/v1/user/login", {
-                email,
-                password,
-            })
-            .then(({ status, data }) => {
-                if (status == 200) {
-                    navigate("/");
-                    toast(<SuccessToast message="Logged in successfully !" />, {
-                        style: {
-                            fontSize: "16px",
-                            border: "1px solid rgba(255, 255, 255, 0.2)",
-                        },
-                    });
-                    localStorage.token = data.token;
-                    localStorage.isLoggedIn = true;
-                    setIsLoggedIn(true);
-                    const userObj = jwtDecode<{
-                        firstName: string;
-                        lastName: string;
-                        email: string;
-                    }>(data.token);
-                    setUserState(userObj);
-                    setIsLoading(false);
-                }
-            })
-            .catch((e) => {
-                if (axios.isAxiosError(e)) {
-                    const axiosError = e as AxiosError;
-                    if (axiosError.status == 401) {
+        if (validateSchema()) {
+            setIsLoading(true);
+            axios
+                .post(`${BASE_URL}/api/v1/user/login`, {
+                    email,
+                    password,
+                })
+                .then(({ status, data }) => {
+                    if (status == 200) {
+                        navigate("/");
                         toast(
-                            <ErrorToast message="Wrong email or password." />,
+                            <SuccessToast message="Logged in successfully !" />,
                             {
                                 style: {
                                     fontSize: "16px",
@@ -67,41 +67,70 @@ function Signup() {
                                 },
                             }
                         );
-                        setIsLoading(false);
-                    } else if (axiosError.status == 422) {
-                        toast(<ErrorToast message="Invalid email format." />, {
-                            style: {
-                                fontSize: "16px",
-                                border: "1px solid rgba(255, 255, 255, 0.2)",
-                            },
-                        });
-                        setIsLoading(false);
-                    } else if (axiosError.status == 404) {
-                        toast(
-                            <ErrorToast message="User does not exist, try signing in." />,
-                            {
-                                style: {
-                                    fontSize: "16px",
-                                    border: "1px solid rgba(255, 255, 255, 0.2)",
-                                },
-                            }
-                        );
-                        setIsLoading(false);
-                    } else {
-                        toast(
-                            <ErrorToast message="Some error occurred, try again." />,
-                            {
-                                style: {
-                                    fontSize: "16px",
-                                    border: "1px solid rgba(255, 255, 255, 0.2)",
-                                },
-                            }
-                        );
+                        localStorage.token = data.token;
+                        localStorage.isLoggedIn = true;
+                        setIsLoggedIn(true);
+                        const userObj = jwtDecode<{
+                            firstName: string;
+                            lastName: string;
+                            email: string;
+                        }>(data.token);
+                        setUserState(userObj);
                         setIsLoading(false);
                     }
-                }
-                console.log(e);
-            });
+                })
+                .catch((e) => {
+                    if (axios.isAxiosError(e)) {
+                        const axiosError = e as AxiosError;
+                        if (axiosError.status == 401) {
+                            toast(
+                                <ErrorToast message="Wrong email or password." />,
+                                {
+                                    style: {
+                                        fontSize: "16px",
+                                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                                    },
+                                }
+                            );
+                            setIsLoading(false);
+                        } else if (axiosError.status == 422) {
+                            toast(
+                                <ErrorToast message="Invalid email format." />,
+                                {
+                                    style: {
+                                        fontSize: "16px",
+                                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                                    },
+                                }
+                            );
+                            setIsLoading(false);
+                        } else if (axiosError.status == 404) {
+                            toast(
+                                <ErrorToast message="User does not exist, try signing in." />,
+                                {
+                                    style: {
+                                        fontSize: "16px",
+                                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                                    },
+                                }
+                            );
+                            setIsLoading(false);
+                        } else {
+                            toast(
+                                <ErrorToast message="Some error occurred, try again." />,
+                                {
+                                    style: {
+                                        fontSize: "16px",
+                                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                                    },
+                                }
+                            );
+                            setIsLoading(false);
+                        }
+                    }
+                    console.log(e);
+                });
+        }
     };
 
     return (
@@ -178,6 +207,7 @@ function Signup() {
                         <Button
                             className="w-full py-6 mb-2 flex items-center justify-center hover:bg-white"
                             onClick={onLogin}
+                            disabled={isLoading}
                         >
                             {!isLoading ? (
                                 <div>LOG IN</div>
@@ -214,4 +244,4 @@ function Signup() {
     );
 }
 
-export default Signup;
+export default Login;

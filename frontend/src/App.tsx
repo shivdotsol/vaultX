@@ -6,6 +6,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Login from "./Login";
 import { Toaster } from "sonner";
 import { RecoilRoot } from "recoil";
+import Dashboard from "./Dashboard";
 
 const darkTheme = createTheme({
     palette: {
@@ -24,6 +25,7 @@ function App() {
                         <Route path="/" element={<Landing />} />
                         <Route path="/signup" element={<Signup />} />
                         <Route path="/login" element={<Login />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
                     </Routes>
                 </BrowserRouter>
             </ThemeProvider>

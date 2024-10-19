@@ -30,10 +30,12 @@ function Signup() {
 
     const validateSchema = () => {
         if (
-            email.includes("@") &&
-            email.endsWith(".com") &&
-            !email.startsWith("@") &&
-            email.includes("@.")
+            !(
+                email.includes("@") &&
+                email.endsWith(".com") &&
+                !email.startsWith("@") &&
+                !email.includes("@.")
+            )
         ) {
             toast(<ErrorToast message="Invalid email format" />);
             return false;
@@ -53,7 +55,7 @@ function Signup() {
         if (validateSchema()) {
             setIsLoading(true);
             axios
-                .post("https://api.vaultx.shivtiwari.com/api/v1/user/signup", {
+                .post("http://localhost:3000/api/v1/user/signup", {
                     email,
                     firstName,
                     lastName,

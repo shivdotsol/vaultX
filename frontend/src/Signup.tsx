@@ -222,7 +222,7 @@ function Signup() {
                             Existing user ?
                             <div
                                 className="ml-1 text-slate-100 inline-block cursor-pointer"
-                                onClick={() => navigate("/login")}
+                                onClick={() => navigate("/#/login")}
                             >
                                 login instead
                             </div>

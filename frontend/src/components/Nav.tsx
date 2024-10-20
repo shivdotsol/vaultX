@@ -131,14 +131,14 @@ function Nav() {
                         <Button
                             variant={"default"}
                             className="w-24 mr-2 xl:mr-5 xl:w-36 xl:h-11 text-[16px]"
-                            onClick={() => navigate("/signup")}
+                            onClick={() => navigate("/#/signup")}
                         >
                             SIGN UP
                         </Button>
                         <Button
                             variant={"secondary"}
                             className="w-24 xl:w-36 xl:h-11 text-[16px]"
-                            onClick={() => navigate("/login")}
+                            onClick={() => navigate("/#/login")}
                         >
                             LOG IN
                         </Button>

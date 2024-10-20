@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, HashRouter, Route, Routes } from "react-router-dom";
 import Landing from "./Landing";
 import Signup from "./Signup";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
@@ -20,14 +20,14 @@ function App() {
             <ThemeProvider theme={darkTheme}>
                 <Toaster duration={5000} theme="dark" />
                 <CssBaseline />
-                <BrowserRouter>
+                <HashRouter>
                     <Routes>
                         <Route path="/" element={<Landing />} />
                         <Route path="/signup" element={<Signup />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/dashboard" element={<Dashboard />} />
                     </Routes>
-                </BrowserRouter>
+                </HashRouter>
             </ThemeProvider>
         </RecoilRoot>
     );

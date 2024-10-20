@@ -52,7 +52,7 @@ function Login() {
             setIsLoading(true);
             axios
                 .post(`${BASE_URL}/api/v1/user/login`, {
-                    email,
+                    email: email.toLowerCase(),
                     password,
                 })
                 .then(({ status, data }) => {

@@ -58,7 +58,7 @@ function Signup() {
             setIsLoading(true);
             axios
                 .post(`${BASE_URL}/api/v1/user/signup`, {
-                    email,
+                    email: email.toLowerCase(),
                     firstName,
                     lastName,
                     password,

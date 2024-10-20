@@ -232,7 +232,7 @@ function Login() {
                             New user ?
                             <div
                                 className="ml-1 text-slate-100 inline-block cursor-pointer"
-                                onClick={() => navigate("/#/signup")}
+                                onClick={() => navigate("/signup")}
                             >
                                 signup instead
                             </div>

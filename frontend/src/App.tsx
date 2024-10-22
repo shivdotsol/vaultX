@@ -16,20 +16,20 @@ const darkTheme = createTheme({
 
 function App() {
     return (
-        <HashRouter>
-            <RecoilRoot>
-                <ThemeProvider theme={darkTheme}>
-                    <Toaster duration={5000} theme="dark" />
-                    <CssBaseline />
+        <RecoilRoot>
+            <ThemeProvider theme={darkTheme}>
+                <Toaster duration={5000} theme="dark" />
+                <CssBaseline />
+                <BrowserRouter>
                     <Routes>
                         <Route path="/" element={<Landing />} />
                         <Route path="/signup" element={<Signup />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/dashboard" element={<Dashboard />} />
                     </Routes>
-                </ThemeProvider>
-            </RecoilRoot>
-        </HashRouter>
+                </BrowserRouter>
+            </ThemeProvider>
+        </RecoilRoot>
     );
 }
 

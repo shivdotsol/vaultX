@@ -69,7 +69,7 @@ router.post("/signup", async (req, res) => {
                             firstName: data.firstName,
                             lastName: data.lastName || "",
                             passwordHash: data.password || "",
-                            authType: data.authType,
+                            authType: data.authType || "EMAIL",
                             googleId: data.googleId || "",
                             photoUrl: data.photoUrl || "",
                         },

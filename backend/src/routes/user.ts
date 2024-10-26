@@ -16,14 +16,16 @@ if (typeof secret == "undefined") {
 const signupSchema = zod.object({
     email: zod.string().email(),
     firstName: zod.string(),
-    lastName: zod.string(),
-    password: zod
-        .string()
-        .min(8, "Password must be atleast 8 characters long."),
+    lastName: zod.string().optional(),
+    password: zod.string().optional(),
+    authType: zod.enum(["EMAIL", "GOOGLE"]),
+    photoUrl: zod.string().optional(),
+    googleId: zod.string().optional(),
 });
 const loginSchema = zod.object({
     email: zod.string().email(),
-    password: zod.string(),
+    password: zod.string().optional(),
+    authType: zod.enum(["EMAIL", "GOOGLE"]),
 });
 
 router.post("/signup", async (req, res) => {
@@ -67,6 +69,9 @@ router.post("/signup", async (req, res) => {
                             firstName: data.firstName,
                             lastName: data.lastName,
                             passwordHash: data.password,
+                            authType: data.authType,
+                            googleId: data.googleId,
+                            photoUrl: data.photoUrl,
                         },
                     });
 
@@ -114,7 +119,21 @@ router.post("/login", async (req, res) => {
             });
 
             if (user != null) {
-                if (data.password == user.passwordHash) {
+                if (data.authType == "GOOGLE") {
+                    const token = jwt.sign(
+                        {
+                            email: user.email,
+                            firstName: user.firstName,
+                            lastName: user.lastName,
+                        },
+                        secret
+                    );
+
+                    res.status(200).json({
+                        msg: "logged in, sucessfully",
+                        token,
+                    });
+                } else if (data.password == user.passwordHash) {
                     const token = jwt.sign(
                         {
                             email: user.email,

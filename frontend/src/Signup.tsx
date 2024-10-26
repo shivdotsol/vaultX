@@ -4,7 +4,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
-import { TextField } from "@mui/material";
+import { Checkbox, TextField } from "@mui/material";
 import { Button } from "./components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -15,6 +15,30 @@ import { userState } from "./store/atoms/authState";
 import { jwtDecode } from "jwt-decode";
 import SuccessToast from "./components/ui/SuccessToast";
 import ErrorToast from "./components/ui/ErrorToast";
+import {
+    CredentialResponse,
+    GoogleCredentialResponse,
+    GoogleLogin,
+    GoogleLoginProps,
+    TokenResponse,
+} from "@react-oauth/google";
+
+interface GoogleJWTPayload {
+    iss: string; // Issuer
+    nbf: number; // Not before
+    aud: string; // Audience
+    sub: string; // Subject (Google User ID)
+    email: string; // User's email
+    email_verified: boolean;
+    azp: string;
+    name: string; // User's full name
+    picture?: string; // User's profile picture URL
+    given_name?: string; // User's first name
+    family_name?: string; // User's last name
+    iat: number; // Issued at
+    exp: number; // Expiration time
+    jti: string; // JWT ID
+}
 
 function Signup() {
     const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -27,7 +51,19 @@ function Signup() {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [password, setPassword] = useState("");
+    const [photoUrl, setPhotoUrl] = useState("");
+    const [googleId, setGoogleId] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [passwordVisible, setPasswordVisible] = useState(false);
+
+    const clearFields = () => {
+        setEmail("");
+        setFirstName("");
+        setLastName("");
+        setPhotoUrl("");
+        setPassword("");
+        setGoogleId("");
+    };
 
     const validateSchema = () => {
         const emailRegex =
@@ -41,8 +77,6 @@ function Signup() {
             return false;
         } else if (firstName.length < 1) {
             toast(<ErrorToast message="First name can't be empty" />);
-        } else if (lastName.length < 1) {
-            toast(<ErrorToast message="Last name can't be empty" />);
         } else if (password.length < 8) {
             toast(
                 <ErrorToast message="Password can't be less than 8 characters" />
@@ -50,6 +84,72 @@ function Signup() {
             return false;
         } else {
             return true;
+        }
+    };
+
+    const handleGoogleSignup = (res: CredentialResponse) => {
+        if (res.clientId != null && res.credential != null) {
+            const decoded = jwtDecode<GoogleJWTPayload>(res.credential);
+            console.log("////////////////////////////////////");
+            console.log({
+                email: decoded.email,
+                firstName: decoded.given_name,
+                lastName: decoded.family_name,
+                password,
+                googleId: decoded.sub,
+                photoUrl: decoded.picture,
+                authType: "GOOGLE",
+            });
+            axios
+                .post(`${BASE_URL}/api/v1/user/signup`, {
+                    email: decoded.email,
+                    firstName: decoded.given_name,
+                    lastName: decoded.family_name,
+                    password,
+                    googleId: decoded.sub,
+                    photoUrl: decoded.picture,
+                    authType: "GOOGLE",
+                })
+                .then(({ status, data }) => {
+                    if (status == 200) {
+                        navigate("/dashboard", { replace: true });
+                        toast(
+                            <SuccessToast message="Signed up successfully !" />,
+                            {
+                                style: {
+                                    fontSize: "16px",
+                                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                                },
+                            }
+                        );
+                        localStorage.token = data.token;
+                        localStorage.isLoggedIn = true;
+                        setIsLoggedIn(true);
+                        const userObj = jwtDecode<{
+                            firstName: string;
+                            lastName: string;
+                            email: string;
+                        }>(data.token);
+                        setUserState(userObj);
+                        setIsLoading(false);
+                    }
+                })
+                .catch((e) => {
+                    setIsLoading(false);
+                    clearFields();
+                    if (axios.isAxiosError(e)) {
+                        const axiosError = e as AxiosError;
+                        if (axiosError.status == 409) {
+                            toast(
+                                <ErrorToast message="email already in use" />
+                            );
+                        }
+                    } else
+                        toast(
+                            <ErrorToast message="Some error occurred, try again" />
+                        );
+                    console.log(e);
+                });
         }
     };
 
@@ -62,10 +162,13 @@ function Signup() {
                     firstName,
                     lastName,
                     password,
+                    googleId,
+                    photoUrl,
+                    authType: "EMAIL",
                 })
                 .then(({ status, data }) => {
                     if (status == 200) {
-                        navigate("/dashboard");
+                        navigate("/dashboard", { replace: true });
                         toast(
                             <SuccessToast message="Signed up successfully !" />,
                             {
@@ -187,11 +290,18 @@ function Signup() {
                         <TextField
                             label="Password"
                             variant="outlined"
-                            type="password"
+                            type={passwordVisible ? "text" : "password"}
                             className="w-full"
                             onChange={(e) => setPassword(e.target.value)}
                             value={password}
                         />
+                    </div>
+                    <div className="mt-5 flex h-4 items-center">
+                        <Checkbox
+                            checked={passwordVisible}
+                            onChange={() => setPasswordVisible((prev) => !prev)}
+                        />
+                        <div className="text-sm">Show password</div>
                     </div>
                     <div className="w-full mt-10 flex flex-col">
                         <Button
@@ -218,11 +328,26 @@ function Signup() {
                         >
                             CANCEL
                         </Button>
+                        <div className="my-3 w-full flex items-center justify-center">
+                            or
+                        </div>
+                        <div className="flex w-full items-center justify-center">
+                            <GoogleLogin
+                                onSuccess={(credentialResponse) => {
+                                    handleGoogleSignup(credentialResponse);
+                                }}
+                                onError={() => {
+                                    console.log("Login Failed");
+                                }}
+                            />
+                        </div>
                         <div className="w-full text-center text-slate-300 mt-4 text-sm">
                             Existing user ?
                             <div
                                 className="ml-1 text-slate-100 inline-block cursor-pointer"
-                                onClick={() => navigate("/login")}
+                                onClick={() =>
+                                    navigate("/login", { replace: true })
+                                }
                             >
                                 login instead
                             </div>

@@ -19,7 +19,13 @@ function Hero() {
             </div>
             <Button
                 className="font-bold xl:w-44 xl:h-12 text-[16px]"
-                onClick={() => navigate("/signup")}
+                onClick={() =>
+                    navigate(
+                        localStorage.getItem("isLoggedIn")
+                            ? "/dashboard"
+                            : "/signup"
+                    )
+                }
             >
                 GET STARTED
             </Button>

@@ -7,15 +7,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AuthType {
+  EMAIL
+  GOOGLE
+}
+
 model User {
-  id           Int           @id @default(autoincrement())
-  createdAt    DateTime      @default(now())
-  email        String        @unique
-  firstName    String
-  lastName     String
-  passwordHash String
-  username     String        @unique
-  transactions Transaction[]
+  id            Int           @id @default(autoincrement())
+  createdAt     DateTime      @default(now())
+  email         String        @unique
+  firstName     String
+  lastName      String?
+  passwordHash  String?
+  username      String        @unique
+  authType      AuthType      @default(EMAIL)
+  photoUrl      String?
+  googleId      String?       @unique
+  emailVerified Boolean       @default(false)
+  transactions  Transaction[]
 }
 
 model Transaction {

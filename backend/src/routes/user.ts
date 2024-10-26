@@ -67,11 +67,11 @@ router.post("/signup", async (req, res) => {
                             username,
                             email: data.email,
                             firstName: data.firstName,
-                            lastName: data.lastName,
-                            passwordHash: data.password,
+                            lastName: data.lastName || "",
+                            passwordHash: data.password || "",
                             authType: data.authType,
-                            googleId: data.googleId,
-                            photoUrl: data.photoUrl,
+                            googleId: data.googleId || "",
+                            photoUrl: data.photoUrl || "",
                         },
                     });
 

@@ -15,10 +15,10 @@ model User {
   lastName      String?
   passwordHash  String?
   username      String        @unique
-  authType      String        @default("EMAIL")
-  photoUrl      String?
-  googleId      String?       @unique
   emailVerified Boolean       @default(false)
+  googleId      String?
+  photoUrl      String?
+  authType      String        @default("EMAIL")
   transactions  Transaction[]
 }
 
@@ -30,6 +30,6 @@ model Transaction {
   amount          BigInt
   token           String
   transactionHash String   @unique
-  user            User     @relation(fields: [userId], references: [id])
   userId          Int
+  user            User     @relation(fields: [userId], references: [id])
 }

@@ -124,14 +124,11 @@ function Signup() {
                         );
                         localStorage.token = data.token;
                         localStorage.isLoggedIn = true;
+                        localStorage.user = JSON.stringify(data.currUser);
+                        console.log(data.currUser);
                         setIsLoggedIn(true);
-                        const userObj = jwtDecode<{
-                            firstName: string;
-                            lastName: string;
-                            email: string;
-                        }>(data.token);
-                        setUserState(userObj);
                         setIsLoading(false);
+                        setUserState(data.currUser);
                     }
                 })
                 .catch((e) => {
@@ -162,7 +159,6 @@ function Signup() {
                     firstName,
                     lastName,
                     password,
-                    googleId,
                     photoUrl,
                     authType: "EMAIL",
                 })
@@ -180,14 +176,11 @@ function Signup() {
                         );
                         localStorage.token = data.token;
                         localStorage.isLoggedIn = true;
+                        localStorage.user = JSON.stringify(data.currUser);
+                        console.log(data.currUser);
                         setIsLoggedIn(true);
-                        const userObj = jwtDecode<{
-                            firstName: string;
-                            lastName: string;
-                            email: string;
-                        }>(data.token);
-                        setUserState(userObj);
                         setIsLoading(false);
+                        setUserState(data.currUser);
                     }
                 })
                 .catch((e) => {

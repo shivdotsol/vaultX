@@ -45,15 +45,6 @@ router.post("/signup", async (req, res) => {
                 },
             });
             if (user == null) {
-                const token = jwt.sign(
-                    {
-                        email: data.email,
-                        firstName: data.firstName,
-                        lastName: data.lastName,
-                    },
-                    secret
-                );
-
                 const randomNum = Date.now().toString().slice(-6);
                 const username = `${
                     data.firstName.toLowerCase().trim().split(" ").join("") +
@@ -77,9 +68,21 @@ router.post("/signup", async (req, res) => {
 
                     console.log(user);
 
+                    const { passwordHash, ...currUser } = user;
+
+                    const token = jwt.sign(
+                        {
+                            email: data.email,
+                            firstName: data.firstName,
+                            lastName: data.lastName,
+                        },
+                        secret
+                    );
+
                     res.status(200).json({
                         message: "signup successfull",
                         token,
+                        currUser,
                     });
                 } catch (e) {
                     console.log(e);
@@ -119,6 +122,8 @@ router.post("/login", async (req, res) => {
             });
 
             if (user != null) {
+                const { passwordHash, ...currUser } = user;
+
                 if (data.authType == "GOOGLE") {
                     const token = jwt.sign(
                         {
@@ -132,6 +137,7 @@ router.post("/login", async (req, res) => {
                     res.status(200).json({
                         msg: "logged in, sucessfully",
                         token,
+                        currUser,
                     });
                 } else if (data.password == user.passwordHash) {
                     const token = jwt.sign(
@@ -146,6 +152,7 @@ router.post("/login", async (req, res) => {
                     res.status(200).json({
                         msg: "logged in, sucessfully",
                         token,
+                        currUser,
                     });
                 } else {
                     res.status(401).json({

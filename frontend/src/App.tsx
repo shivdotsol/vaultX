@@ -19,7 +19,6 @@ function App() {
         <RecoilRoot>
             <ThemeProvider theme={darkTheme}>
                 <Toaster duration={5000} theme="dark" />
-                <CssBaseline />
                 <BrowserRouter>
                     <Routes>
                         <Route path="/" element={<Landing />} />

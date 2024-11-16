@@ -3,6 +3,8 @@ import { z as zod } from "zod";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
+import sendOtp from "../libs/resend";
 dotenv.config();
 
 const router = express.Router();
@@ -21,6 +23,7 @@ const signupSchema = zod.object({
     authType: zod.enum(["EMAIL", "GOOGLE"]),
     photoUrl: zod.string().optional(),
     googleId: zod.string().optional(),
+    emailVerified: zod.boolean(),
 });
 const loginSchema = zod.object({
     email: zod.string().email(),
@@ -28,6 +31,13 @@ const loginSchema = zod.object({
     authType: zod.enum(["EMAIL", "GOOGLE"]),
 });
 
+const generateOtp = () => {
+    return Math.floor(Math.random() * 900000 + 100000);
+};
+
+const otpStore: { [key: string]: number } = {};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
 router.post("/signup", async (req, res) => {
     const body = req.body;
     const { success, data, error } = signupSchema.safeParse(body);
@@ -63,6 +73,7 @@ router.post("/signup", async (req, res) => {
                             authType: data.authType || "EMAIL",
                             googleId: data.googleId || "",
                             photoUrl: data.photoUrl || "",
+                            emailVerified: data.emailVerified,
                         },
                     });
 
@@ -78,7 +89,6 @@ router.post("/signup", async (req, res) => {
                         },
                         secret
                     );
-
                     res.status(200).json({
                         message: "signup successfull",
                         token,
@@ -133,7 +143,6 @@ router.post("/login", async (req, res) => {
                         },
                         secret
                     );
-
                     res.status(200).json({
                         msg: "logged in, sucessfully",
                         token,
@@ -170,6 +179,30 @@ router.post("/login", async (req, res) => {
                 msg: "some error occurred, try again",
             });
         }
+    }
+});
+
+router.post("/get-otp", async (req, res) => {
+    const { email, firstName } = req.body;
+    const otp = generateOtp();
+    const otpId = uuidv4();
+    otpStore[otpId] = otp;
+    const resendResponse = await sendOtp(otp, firstName, email);
+    res.json({ otpId, response: resendResponse });
+});
+
+router.post("/verify-otp", async (req, res) => {
+    const { otp, otpId } = req.body;
+    if (otpStore[otpId] == otp) {
+        delete otpStore[otpId];
+        res.json({
+            success: true,
+        });
+    } else {
+        res.json({
+            success: false,
+            msg: "invalid otp",
+        });
     }
 });
 

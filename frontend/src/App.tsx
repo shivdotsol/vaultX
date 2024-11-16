@@ -1,8 +1,7 @@
-import { BrowserRouter, HashRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Landing from "./Landing";
 import Signup from "./Signup";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
 import Login from "./Login";
 import { Toaster } from "sonner";
 import { RecoilRoot } from "recoil";

@@ -65,11 +65,6 @@ function Nav() {
     const [lastName, setLastName] = useState(currentUser.lastName);
     const [username, setUsername] = useState(currentUser.username);
 
-    function openAlert(event: React.MouseEvent<HTMLDivElement>) {
-        event.stopPropagation();
-        setIsDialogOpen(true);
-    }
-
     function handleLogout() {
         localStorage.removeItem("token");
         localStorage.removeItem("isLoggedIn");

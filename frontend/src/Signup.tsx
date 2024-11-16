@@ -10,18 +10,22 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
-import { useRecoilState, useSetRecoilState } from "recoil";
+import { useSetRecoilState } from "recoil";
 import { userState } from "./store/atoms/authState";
 import { jwtDecode } from "jwt-decode";
 import SuccessToast from "./components/ui/SuccessToast";
 import ErrorToast from "./components/ui/ErrorToast";
+import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import {
-    CredentialResponse,
-    GoogleCredentialResponse,
-    GoogleLogin,
-    GoogleLoginProps,
-    TokenResponse,
-} from "@react-oauth/google";
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "./components/ui/dialog";
+import { Label } from "./components/ui/label";
+import { Input } from "./components/ui/input";
 
 interface GoogleJWTPayload {
     iss: string; // Issuer
@@ -52,9 +56,11 @@ function Signup() {
     const [lastName, setLastName] = useState("");
     const [password, setPassword] = useState("");
     const [photoUrl, setPhotoUrl] = useState("");
-    const [googleId, setGoogleId] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [isOtpDialogOpen, setIsOtpDialogOpen] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(false);
+    const [otp, setOtp] = useState("");
+    const [otpId, setOtpId] = useState("");
 
     const clearFields = () => {
         setEmail("");
@@ -62,12 +68,11 @@ function Signup() {
         setLastName("");
         setPhotoUrl("");
         setPassword("");
-        setGoogleId("");
     };
 
     const validateSchema = () => {
         const emailRegex =
-            /^[a-zA-Z0-9._%+-]+[a-zA-Z0-9%+-]@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
+            /^[a-zA-Z0-9._%+-]+[a-zA-Z0-9%+-]@[a-zA-Z0-9-]+\.(?:com|org|net|edu|gov|int|co|us|uk|in|au|pk|io|app|dev|xyz|tech|me|info|biz)$/i;
         if (email.length == 0) {
             toast(<ErrorToast message="email cannot be empty" />);
             return false;
@@ -109,6 +114,7 @@ function Signup() {
                     googleId: decoded.sub,
                     photoUrl: decoded.picture,
                     authType: "GOOGLE",
+                    emailVerified: true,
                 })
                 .then(({ status, data }) => {
                     if (status == 200) {
@@ -150,54 +156,91 @@ function Signup() {
         }
     };
 
-    const onSignup = () => {
+    const sendEmail = () => {
+        setIsOtpDialogOpen(true);
+        axios
+            .post(`${BASE_URL}/api/v1/user/get-otp`, {
+                email: email.toLowerCase(),
+                firstName,
+            })
+            .then(({ data }) => {
+                console.log(data);
+                setOtpId(data.otpId);
+            })
+            .catch((e) => console.log(e));
+    };
+
+    const verifyEmail = () => {
+        axios
+            .post(`${BASE_URL}/api/v1/user/verify-otp`, {
+                email: email.toLowerCase(),
+                otpId,
+                otp,
+            })
+            .then(({ data }) => {
+                console.log(data);
+
+                if (data.success) {
+                    setIsOtpDialogOpen(false);
+                    toast(
+                        <SuccessToast message="Email verified successfully !" />
+                    );
+                    signupAfterVerification();
+                } else {
+                    toast(<ErrorToast message="incorrect OTP" />);
+                }
+            })
+            .catch((e) => console.log(e));
+    };
+
+    const signupAfterVerification = () => {
+        axios
+            .post(`${BASE_URL}/api/v1/user/signup`, {
+                email: email.toLowerCase(),
+                firstName,
+                lastName,
+                password,
+                photoUrl,
+                authType: "EMAIL",
+                emailVerified: true,
+            })
+            .then(({ status, data }) => {
+                if (status == 200) {
+                    navigate("/dashboard", { replace: true });
+                    toast(<SuccessToast message="Signed up successfully !" />, {
+                        style: {
+                            fontSize: "16px",
+                            border: "1px solid rgba(255, 255, 255, 0.2)",
+                        },
+                    });
+                    localStorage.token = data.token;
+                    localStorage.isLoggedIn = true;
+                    localStorage.user = JSON.stringify(data.currUser);
+                    console.log(data.currUser);
+                    setIsLoggedIn(true);
+                    setIsLoading(false);
+                    setUserState(data.currUser);
+                }
+            })
+            .catch((e) => {
+                setIsLoading(false);
+                if (axios.isAxiosError(e)) {
+                    const axiosError = e as AxiosError;
+                    if (axiosError.status == 409) {
+                        toast(<ErrorToast message="email already in use" />);
+                    }
+                } else
+                    toast(
+                        <ErrorToast message="Some error occurred, try again" />
+                    );
+                console.log(e);
+            });
+    };
+
+    const onSignup = async () => {
         if (validateSchema()) {
             setIsLoading(true);
-            axios
-                .post(`${BASE_URL}/api/v1/user/signup`, {
-                    email: email.toLowerCase(),
-                    firstName,
-                    lastName,
-                    password,
-                    photoUrl,
-                    authType: "EMAIL",
-                })
-                .then(({ status, data }) => {
-                    if (status == 200) {
-                        navigate("/dashboard", { replace: true });
-                        toast(
-                            <SuccessToast message="Signed up successfully !" />,
-                            {
-                                style: {
-                                    fontSize: "16px",
-                                    border: "1px solid rgba(255, 255, 255, 0.2)",
-                                },
-                            }
-                        );
-                        localStorage.token = data.token;
-                        localStorage.isLoggedIn = true;
-                        localStorage.user = JSON.stringify(data.currUser);
-                        console.log(data.currUser);
-                        setIsLoggedIn(true);
-                        setIsLoading(false);
-                        setUserState(data.currUser);
-                    }
-                })
-                .catch((e) => {
-                    setIsLoading(false);
-                    if (axios.isAxiosError(e)) {
-                        const axiosError = e as AxiosError;
-                        if (axiosError.status == 409) {
-                            toast(
-                                <ErrorToast message="email already in use" />
-                            );
-                        }
-                    } else
-                        toast(
-                            <ErrorToast message="Some error occurred, try again" />
-                        );
-                    console.log(e);
-                });
+            sendEmail();
         }
     };
 
@@ -248,6 +291,42 @@ function Signup() {
                 </div>
             </div>
             <div className="w-full my-auto xl:h-full xl:w-3/4 bg-slate-950 xl:bg-slate-900 flex items-center justify-center">
+                <Dialog open={isOtpDialogOpen}>
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>OTP verification</DialogTitle>
+                            <DialogDescription>
+                                An OTP has been sent to the email you provided,
+                                please enter it here and click verify.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Input
+                                    id="name"
+                                    className="col-span-4"
+                                    value={otp}
+                                    onChange={(e) => setOtp(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button
+                                className="bg-slate-800 text-slate-200 hover:bg-slate-700 "
+                                onClick={() => {
+                                    setIsOtpDialogOpen(false);
+                                    setIsLoading(false);
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button type="submit" onClick={verifyEmail}>
+                                Verify
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
                 <div className="w-[420px] xl:border-2 xl:border-slate-800 bg-slate-950 rounded-lg px-12 py-10">
                     <div className="text-xl font-bold text-slate-200 w-full text-center mb-8">
                         Welcome aboard !
@@ -260,6 +339,9 @@ function Signup() {
                             onChange={(e) => setEmail(e.target.value)}
                             value={email}
                         />
+                    </div>
+                    <div className="text-sm pl-1 mt-1 text-slate-400">
+                        OTP verification required.
                     </div>
                     <div className="mt-3">
                         <TextField

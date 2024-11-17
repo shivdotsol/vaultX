@@ -48,7 +48,7 @@ function Login() {
 
     const validateSchema = () => {
         const emailRegex =
-            /^[a-zA-Z0-9._%+-]+[a-zA-Z0-9%+-]@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
+            /^[a-zA-Z0-9._%+-]+[a-zA-Z0-9%+-]@[a-zA-Z0-9-]+\.(?:com|org|net|edu|gov|int|co|us|uk|in|au|pk|io|app|dev|xyz|tech|me|info|biz)$/i;
         if (email.length == 0) {
             toast(<ErrorToast message="email cannot be empty" />);
             return false;
@@ -157,6 +157,7 @@ function Login() {
                 .post(`${BASE_URL}/api/v1/user/login`, {
                     email: email.toLowerCase(),
                     password,
+                    authType: "EMAIL",
                 })
                 .then(({ status, data }) => {
                     if (status == 200) {

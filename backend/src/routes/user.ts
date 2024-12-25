@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
+import bcrypt from "bcrypt";
 import sendOtp from "../libs/resend";
 dotenv.config();
 
@@ -62,6 +63,8 @@ router.post("/signup", async (req, res) => {
                     randomNum
                 }`;
 
+                const hashedPassword = await bcrypt.hash(data.password!!, 10);
+
                 try {
                     const user = await prisma.user.create({
                         data: {
@@ -69,7 +72,7 @@ router.post("/signup", async (req, res) => {
                             email: data.email,
                             firstName: data.firstName,
                             lastName: data.lastName || "",
-                            passwordHash: data.password || "",
+                            passwordHash: hashedPassword || "",
                             authType: data.authType || "EMAIL",
                             googleId: data.googleId || "",
                             photoUrl: data.photoUrl || "",
@@ -133,7 +136,13 @@ router.post("/login", async (req, res) => {
 
             if (user != null) {
                 const { passwordHash, ...currUser } = user;
-
+                let passwordCorrect = false;
+                if (data.authType == "EMAIL") {
+                    passwordCorrect = await bcrypt.compare(
+                        data.password!!,
+                        user.passwordHash!!
+                    );
+                }
                 if (data.authType == "GOOGLE") {
                     const token = jwt.sign(
                         {
@@ -148,7 +157,7 @@ router.post("/login", async (req, res) => {
                         token,
                         currUser,
                     });
-                } else if (data.password == user.passwordHash) {
+                } else if (passwordCorrect) {
                     const token = jwt.sign(
                         {
                             email: user.email,

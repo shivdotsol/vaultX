@@ -13,11 +13,13 @@
   "dependencies": {
     "@prisma/client": "^5.20.0",
     "@react-email/components": "^0.0.28",
+    "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/react": "^18.3.12",
     "bcrpyt": "^2.0.0",
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",

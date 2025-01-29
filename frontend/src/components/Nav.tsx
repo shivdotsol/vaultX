@@ -75,7 +75,7 @@ function Nav() {
     console.log(currentUser);
     return (
         <>
-            <div className="flex justify-between items-center w-full h-12 px-3 mt-1 xl:h-20 xl:px-5">
+            <div className="flex justify-between items-center w-full h-12 px-3 xl:h-20 xl:px-5">
                 <div className="flex items-center h-full w-32 ml-1 xl:w-60">
                     <img src="/vaultx.png" alt="logo" />
                 </div>
@@ -84,12 +84,12 @@ function Nav() {
                         <div>
                             <Sheet>
                                 <SheetTrigger asChild>
-                                    <Avatar className="w-14 h-14 font-bold cursor-pointer">
+                                    <Avatar className="w-14 h-14 font-bold cursor-pointer border-2 border-slate-700">
                                         <AvatarImage
                                             src={currentUser.photoUrl}
                                         />
                                         <AvatarFallback
-                                            style={{ fontSize: "20px" }}
+                                            style={{ fontSize: "22px" }}
                                         >
                                             {currentUser.firstName
                                                 .slice(0, 1)
